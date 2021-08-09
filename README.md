@@ -1,4 +1,3 @@
-**Steps to run**
 
 Clone respository
 
@@ -11,4 +10,11 @@ $ python -m pip install --upgrade pip
 $ python -m pip install pip-tools
 $ pip-compile
 $ pip-sync
+```
+
+Generate exe
+
+```
+$ pip install pyinstaller
+$ pyinstaller_win.bat
 ```

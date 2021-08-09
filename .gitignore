@@ -48,3 +48,9 @@ Thumbs.db
 *.mov
 *.wmv
 
+.env/
+build_win/
+dist_win/
+clas_clube.pdf
+clas_depor.pdf
+clasificacion_.ods

@@ -49,19 +49,19 @@ except IOError:
 trans.install() 
 
 
-events = ("Travesía Concello de Ortigueira",
-"Travesía Encoro os Peares",
-"Travesía Ría de Vigo",
-"Travesía MINIUS",
-"Travesía Porto de Vilagarcía",
-"Travesía ao Dique",
-"Travesía Concello de Arteixo",
-"Travesía Concello de Cedeira",
-"Travesía Praia de Coroso",
+events = ("Travesía Vila do Tea",
+# "Travesía Encoro os Peares",
+# "Travesía Ría de Vigo",
+# "Travesía MINIUS",
+# "Travesía Porto de Vilagarcía",
+# "Travesía ao Dique",
+# "Travesía Concello de Arteixo",
+# "Travesía Concello de Cedeira",
+# "Travesía Praia de Coroso",
 "Travesía a nado Illa de Bensa",
-"Travesía Vila do Tea",
-"Travesía do Caneiro",
-"Travesía de Valdeorras",
+# "Travesía Vila do Tea",
+# "Travesía do Caneiro",
+# "Travesía de Valdeorras",
 "Cto. Galego de Augas Abertas")
 
 count_events = len(events)
@@ -77,16 +77,17 @@ class Result():
     def __init__(self, event_id, pos):
         self.event_id = event_id
         self.pos = pos
-        if event_id != 13:
-            if pos > len(pun_tra):
-                points = 0
-            else:
-                points = pun_tra[pos]
-        else:
+
+        if event_id == 2:  # Is cto galego
             if pos > len(pun_cto):
                 points = 0
             else:
                 points = pun_cto[pos]
+        else:
+            if pos > len(pun_tra):
+                points = 0
+            else:
+                points = pun_tra[pos]        
         self.points = points
 
     @property
@@ -128,13 +129,15 @@ class Person():
 
     @property
     def total_points(self):
+        MIN_TO_POINT = 0  # Mínimo de travesías para poder puntuar
+        POINT_BEST = 3  # Punutar as n mellores puntuacións
         total = -1
-        if len(self.results) > 4:
+        if len(self.results) > MIN_TO_POINT:
             total = 0
             results_sorted = sorted(
                 self.results.values(), key=attrgetter('points'),
                 reverse=True)
-            for item in results_sorted[:5]:
+            for item in results_sorted[:POINT_BEST]:
                 total += item.points
         if len(self.results) > 9:
             total += 20
@@ -279,22 +282,23 @@ class Clasaua():
         persons = {}
 
         for values in lines:
-            event_id = int(values[EVENT_ID]) - 1
-            pos = int(values[POS]) - 1
-            person_id = values[PERSON_ID].strip()
-            club_id = values[CLUB_ID].strip()
-            if len(club_id) < 5:
-                club_id = club_id.zfill(5)
-            full_name = values[FULL_NAME].strip()
-            gender_id = values[GENDER_ID].strip()
-            category_id = values[CATEGORY_ID].strip()
-            if person_id in persons:
-                person = persons[person_id]
-            else:
-                person = Person(
-                    person_id, full_name, gender_id, category_id, club_id)
-                persons[person_id] = person
-            person.add_result(event_id, pos)
+            if values[0]:
+                event_id = int(values[EVENT_ID]) - 1
+                pos = int(values[POS]) - 1
+                person_id = values[PERSON_ID].strip()
+                club_id = values[CLUB_ID].strip()
+                if len(club_id) < 5:
+                    club_id = club_id.zfill(5)
+                full_name = values[FULL_NAME].strip()
+                gender_id = values[GENDER_ID].strip()
+                category_id = values[CATEGORY_ID].strip()
+                if person_id in persons:
+                    person = persons[person_id]
+                else:
+                    person = Person(
+                        person_id, full_name, gender_id, category_id, club_id)
+                    persons[person_id] = person
+                person.add_result(event_id, pos)
         self.persons = persons
 
     def get_data_csv(self):
@@ -354,7 +358,7 @@ class Clasaua():
                        file_path=file_path,
                        orientation='portrait',
                        title="Circuíto Galego de Augas Abertas",
-                       subtitle='Tempada 2018/19')
+                       subtitle='Tempada 2020/21')
 
         d.insert_paragraph(
             "<b>Clasificacións individuais por categoría</b>", "CENTER")
@@ -362,6 +366,8 @@ class Clasaua():
         cabeceira = (
             'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
             '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'Tot.')
+        cabeceira = (
+            'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', 'Tot.')
         table = []
         lines_title = []
         category_id = None
