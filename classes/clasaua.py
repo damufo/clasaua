@@ -98,7 +98,10 @@ class Result():
 class Person():
     def __init__(self, person_id, full_name, gender_id, category_id, club_id):
         self.person_id = person_id
-        self.name = full_name.split(',')[1].strip()
+        if ',' in full_name:
+            self.name = full_name.split(',')[1].strip()
+        else:
+            self.name = ""
         self.surname = full_name.split(',')[0].strip()
 
         self.gender_id = gender_id
@@ -274,7 +277,7 @@ class Clasaua():
                 else:
                     line.append(cell.__str__())
 
-            if len(line) == 7:
+            if len(line) >= 7:
                 lines.append(line)
 
         (EVENT_ID, POS, PERSON_ID, CLUB_ID, FULL_NAME, GENDER_ID,
