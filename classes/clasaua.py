@@ -49,20 +49,19 @@ except IOError:
 trans.install() 
 
 
-events = ("Travesía Vila do Tea",
-# "Travesía Encoro os Peares",
-# "Travesía Ría de Vigo",
-# "Travesía MINIUS",
-# "Travesía Porto de Vilagarcía",
-# "Travesía ao Dique",
-# "Travesía Concello de Arteixo",
-# "Travesía Concello de Cedeira",
-# "Travesía Praia de Coroso",
-"Travesía a nado Illa de Bensa",
-# "Travesía Vila do Tea",
-# "Travesía do Caneiro",
-# "Travesía de Valdeorras",
-"Cto. Galego de Augas Abertas")
+events = (
+    "Cto. Galego de Augas Abertas",
+    "Travesía Costa Oleiros",
+    "Travesía Praia de Oza",
+    "Travesía ao Dique",
+    "Travesía Minius",
+    "Travesía Ría de Vigo",
+    "Travesía Sisargas Malpica",
+    "Travesía Praia de Coroso",
+    "Travesía Illa de Bensa",
+    "Travesía Vila do Tea",
+    "Etapa Final",
+)
 
 count_events = len(events)
 # Puntuations
@@ -77,17 +76,16 @@ class Result():
     def __init__(self, event_id, pos):
         self.event_id = event_id
         self.pos = pos
-
-        if event_id == 2:  # Is cto galego
-            if pos > len(pun_cto):
+        if event_id != 11:
+            if pos >= len(pun_tra):
+                points = 0
+            else:
+                points = pun_tra[pos]
+        else:
+            if pos >= len(pun_cto):
                 points = 0
             else:
                 points = pun_cto[pos]
-        else:
-            if pos > len(pun_tra):
-                points = 0
-            else:
-                points = pun_tra[pos]        
         self.points = points
 
     @property
@@ -98,10 +96,7 @@ class Result():
 class Person():
     def __init__(self, person_id, full_name, gender_id, category_id, club_id):
         self.person_id = person_id
-        if ',' in full_name:
-            self.name = full_name.split(',')[1].strip()
-        else:
-            self.name = ""
+        self.name = full_name.split(',')[1].strip()
         self.surname = full_name.split(',')[0].strip()
 
         self.gender_id = gender_id
@@ -132,17 +127,15 @@ class Person():
 
     @property
     def total_points(self):
-        MIN_TO_POINT = 0  # Mínimo de travesías para poder puntuar
-        POINT_BEST = 3  # Punutar as n mellores puntuacións
         total = -1
-        if len(self.results) > MIN_TO_POINT:
+        if len(self.results) > 4:
             total = 0
             results_sorted = sorted(
                 self.results.values(), key=attrgetter('points'),
                 reverse=True)
-            for item in results_sorted[:POINT_BEST]:
+            for item in results_sorted[:5]:
                 total += item.points
-        if len(self.results) > 9:
+        if len(self.results) >= 8:
             total += 20
         return total
 
@@ -273,35 +266,38 @@ class Clasaua():
                 if repeateds and int(repeateds) > 1:
                 # cell = cell.getElementsByType(text.P)
                     for repeated in range(int(repeateds)):
-                        line.append(cell.__str__())
+                        if cell.__str__():
+                            line.append(cell.__str__())
                 else:
-                    line.append(cell.__str__())
+                    if cell.__str__():
+                        line.append(cell.__str__())
 
-            if len(line) >= 7:
+            if len(line) == 7:
                 lines.append(line)
+            else:
+                print("Algo fallou.")
 
         (EVENT_ID, POS, PERSON_ID, CLUB_ID, FULL_NAME, GENDER_ID,
          CATEGORY_ID) = range(7)
         persons = {}
 
         for values in lines:
-            if values[0]:
-                event_id = int(values[EVENT_ID]) - 1
-                pos = int(values[POS]) - 1
-                person_id = values[PERSON_ID].strip()
-                club_id = values[CLUB_ID].strip()
-                if len(club_id) < 5:
-                    club_id = club_id.zfill(5)
-                full_name = values[FULL_NAME].strip()
-                gender_id = values[GENDER_ID].strip()
-                category_id = values[CATEGORY_ID].strip()
-                if person_id in persons:
-                    person = persons[person_id]
-                else:
-                    person = Person(
-                        person_id, full_name, gender_id, category_id, club_id)
-                    persons[person_id] = person
-                person.add_result(event_id, pos)
+            event_id = int(values[EVENT_ID]) - 1
+            pos = int(values[POS]) - 1
+            person_id = values[PERSON_ID].strip()
+            club_id = values[CLUB_ID].strip()
+            if len(club_id) < 5:
+                club_id = club_id.zfill(5)
+            full_name = values[FULL_NAME].strip()
+            gender_id = values[GENDER_ID].strip()
+            category_id = values[CATEGORY_ID].strip()
+            if person_id in persons:
+                person = persons[person_id]
+            else:
+                person = Person(
+                    person_id, full_name, gender_id, category_id, club_id)
+                persons[person_id] = person
+            person.add_result(event_id, pos)
         self.persons = persons
 
     def get_data_csv(self):
@@ -357,20 +353,23 @@ class Clasaua():
         #         item.results_text)
 
         file_path = os.path.join(self.app_path_folder, 'clas_depor.pdf')
-        d = ReportBase(app_path_folder=self.app_path_folder,
-                       file_path=file_path,
+        d = ReportBase(
+            app_path_folder=self.app_path_folder,
+            file_path=file_path,
                        orientation='portrait',
                        title="Circuíto Galego de Augas Abertas",
-                       subtitle='Tempada 2020/21')
+                       subtitle='Tempada 2021/22')
 
         d.insert_paragraph(
             "<b>Clasificacións individuais por categoría</b>", "CENTER")
         d.insert_spacer(1, 12)
+        # cabeceira = (
+        #     'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
+        #     '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'Tot.')
         cabeceira = (
             'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
-            '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'Tot.')
-        cabeceira = (
-            'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', 'Tot.')
+            '5', '6', '7', '8', '9', '10', '11', 'Tot.')
+        num_events = 11
         table = []
         lines_title = []
         category_id = None
@@ -444,7 +443,8 @@ class Clasaua():
             # style.append(('SPAN', (0, i+1), (-1, i+1)))  # clube
 
         col_widths = ['3%', '7%', '20%', '12%', '11%']
-        col_widths.extend(['3%',] * 14)
+
+        col_widths.extend(['{}%'.format((42/num_events)),] * num_events)
         col_widths.extend(['5%',])
         # row_heghts = [14*mm]
         row_heghts = None
@@ -570,7 +570,7 @@ class Clasaua():
                        file_path=file_path,
                        orientation='portrait',
                        title="Circuíto Galego de Augas Abertas",
-                       subtitle='Tempada 2018/19')
+                       subtitle='Tempada 2021/22')
         d.insert_spacer(1, 12)
 
         clasifications = (
@@ -582,7 +582,9 @@ class Clasaua():
         for clasification in clasifications:
             title = clasification[0]
             res = clasification[1]
-            d.insert_paragraph("<b>{}</b>".format(title), "LEFT")
+            # d.insert_paragraph("<b>{}</b>".format(title), "LEFT")
+            d.insert_title_1("{}".format(title), 0)
+            d.insert_spacer(1, 10)
             table = []
             current_points = None
             current_pos = 0
@@ -602,21 +604,26 @@ class Clasaua():
                 line = (position, club_name, points, '')
                 table.append(line)
 
-            col_widths = ['5%', '20%', '15%', '60%']
+            col_widths = ['5%', '40%', '15%', '30%']
             # col_widths = ['3%', '10%', '7%', '13%', '10%','67%']
             # row_heghts = [14*mm]
             row_heghts = None
 
             style = [
-                        ('FONTSIZE', (0, 0), (-1, -1), 8),
+                        ('FONTSIZE', (0, 0), (-1, -1), 10),
                         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
                         ('ALIGN',(2, 0),(2, -1), 'RIGHT'),
                         ('TOPPADDING', (0,0), (-1, -1), 3),
                         ('BOTTOMPADDING', (0, 0), (-1, -1), -2),
                     ]
-            d.insert_table(table=table, colWidths=col_widths,
-                            rowHeights=row_heghts,
-                            style=style, pagebreak=False)
+            d.insert_table(
+                table=table,
+                colWidths=col_widths,
+                rowHeights=row_heghts,
+                style=style,
+                pagebreak=False,
+                alignment='CENTER',
+                )
             d.insert_spacer(1, 30)
 
 

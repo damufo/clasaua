@@ -21,12 +21,98 @@ import re
 from datetime import date, timedelta, datetime
 
 
-def date2str(value, output_format='YYYY/MM/DD'):
+def validate(value):
+    """
+    I do not remember the author of thus function, sorry.
+    Conversion from string to datetime object.  Most of the common
+    patterns are currently supported.
+    If not valid '' is returned
+
+    @param input_: Date time (of supported pattern)
+    @type input_: String, or None
+    @return: datetime.datetime
+
+    >>> print str2date("10/4/2005 21:45")
+    2005-10-04 21:45:00
+    """
+    date_valid = ''
+    if value:
+        if not isinstance(value, str):
+            print('Value passed must be of type string.')
+        else:
+            ptime = {}
+            parts = {'Y': r'(?P<y>(1|2)\d{3})',
+                     'm': r'(?P<m>(1[0-2]|0[1-9]|[1-9]))',
+                     'd': r'(?P<d>(0[1-9]|[12]\d|3[01]|[1-9]))',
+                     'T': r'( (?P<H>([0-1]?[0-9])|([2][0-3])):(?P<M>[0-5]?[0-9])(:(?P<S>[0-5]?[0-9]))?)?'}
+            regs = []
+            regs.append('^%(Y)s\D%(m)s\D%(d)s%(T)s')
+            regs.append('^%(Y)s%(m)s%(d)s%(T)s')
+            regs.append('^%(d)s\D%(m)s\D%(Y)s%(T)s')
+            regs.append('^%(d)s%(m)s%(Y)s$')
+            regs.append('^%(m)s\D%(d)s\D%(Y)s%(T)s')
+            regs.append('^%(m)s%(d)s%(Y)s%(T)s')
+
+            for regexp in regs:
+                ex = regexp % parts
+                match = re.match(regexp % parts, value)
+                if match is not None:
+                    ptime.update(match.groupdict())
+                    break
+            if len(list(ptime.keys())) not in  (3, 6):
+                print(
+                    'Value passed must by 2005-10-04 or '
+                    '2005-10-04 21:45 or 2005-10-04 21:45:00')
+            elif ptime:
+                try:
+                    datetime_valid = datetime(
+                        year=int(ptime['y']),
+                        month=int(ptime['m']),
+                        day=int(ptime['d']),
+                        hour=int(ptime['H'] or '0'),
+                        minute=int(ptime['M'] or '0'),
+                        second=int(ptime['S'] or '0'))
+                    date_valid = "{}-{}-{} {}:{}:{}".format(
+                        datetime_valid.year,
+                        str(datetime_valid.month).zfill(2),
+                        str(datetime_valid.day).zfill(2),
+                        str(datetime_valid.hour).zfill(2),
+                        str(datetime_valid.minute).zfill(2),
+                        str(datetime_valid.second).zfill(2),
+                        )
+                except:
+                    print('err')
+                    date_valid = ''
+
+    return date_valid
+
+def get_current():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def get_numbers():
+    return datetime.now().strftime("%Y%m%d%H%M%S")
+
+def get_file_name():
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+def get_current_batch():
+    return datetime.now().strftime("%Y-%V")
+
+
+# =============================================================================
+# Dates
+# =============================================================================
+
+def __date2str(value, output_format='YYYY/MM/DD'):
     """ value is a date object"""
     text = ''
     if isinstance(value, date):
         if output_format == 'YYYYMMDD':
             text = "%s%s%s" % (value.year,
+                               str(value.month).zfill(2),
+                               str(value.day).zfill(2))
+        elif output_format == 'YYYY-MM-DD':
+            text = "%s-%s-%s" % (value.year,
                                str(value.month).zfill(2),
                                str(value.day).zfill(2))
         elif output_format == 'DD/MM/YYYY':
@@ -37,9 +123,10 @@ def date2str(value, output_format='YYYY/MM/DD'):
             text = "%s/%s/%s" % (value.year,
                                  str(value.month).zfill(2),
                                  str(value.day).zfill(2))
+        
     return text
 
-def datetime2str(value, output_format='YYYY-MM-DD HH:MM:SS'):
+def __datetime2str(value, output_format='YYYY-MM-DD HH:MM:SS'):
     """ value is a date object"""
     text = ''
     if isinstance(value, datetime):
@@ -51,7 +138,15 @@ def datetime2str(value, output_format='YYYY-MM-DD HH:MM:SS'):
                 str(value.hour).zfill(2),
                 str(value.minute).zfill(2),
                 str(value.second).zfill(2))
-        else:  # default
+        elif output_format == 'YYYY/MM/DD HH:MM:SS':
+            text = "{}/{}/{} {}:{}:{}".format(
+                value.year,
+                str(value.month).zfill(2),
+                str(value.day).zfill(2),
+                str(value.hour).zfill(2),
+                str(value.minute).zfill(2),
+                str(value.second).zfill(2))
+        else:  # default YYYY-MM-DD HH:MM:SS
             text = "{}-{}-{} {}:{}:{}".format(
                 value.year,
                 str(value.month).zfill(2),
@@ -61,47 +156,41 @@ def datetime2str(value, output_format='YYYY-MM-DD HH:MM:SS'):
                 str(value.second).zfill(2))
     return text
 
-def date2text(value, output_format='YYYY/MM/DD'):
-    return date2str(value, output_format)
+def __date_numbers_to_iso(value):
+    '''
+    Value is a YYYYMMDD string
+    return a YYYY-MM-DD string
+    '''
+    return datetime.strptime(value, '%Y%m%d').strftime('%Y-%m-%d')
 
-
-def day_of_week(value):
+def __day_of_week(value):
     """date is a date format, days is a integer value"""
-    value = text2date(value)
-    days = ('Luns', 'Martes', 'MÃ©rcores', 'Xoves', 'Venres', 'SÃ¡bado',
+    value = str2date(value)
+    days = ('Luns', 'Martes', 'Mércores', 'Xoves', 'Venres', 'Sábado',
             'Domingo', )
     str_day = days[value.weekday()]
     return str_day[0].upper() + str_day[1:].lower()
 
 
-def text2date(value):
-    """
-    deprecated function
-    value is a unicode 'YYYY/MM/DD' format
-    return a date object
-    """
-    return str2date(value)
-
-
-def sum_days_to_date(date, days):
+def __sum_days_to_date(date, days):
     """date is a date format, days is a integer value"""
     return date + timedelta(days=days)
 
 
-def get_now_text(format_date='YYYYMMDD'):
-    """
-    date is a date format, days is a integer value
-    """
-    if format_date == 'YYYYMMDD':
-        date_text = datetime.now().strftime("%Y%m%d")
-    elif format_date == 'HHMMSS':
-        date_text = datetime.now().strftime("%H%M%S")
-    elif format_date == 'YYYYMMDD_HHMMSS':
-        date_text = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return date_text
+# def get_now_text(format_date='YYYYMMDD'):
+#     """
+#     date is a date format, days is a integer value
+#     """
+#     if format_date == 'YYYYMMDD':
+#         date_text = datetime.now().strftime("%Y%m%d")
+#     elif format_date == 'HHMMSS':
+#         date_text = datetime.now().strftime("%H%M%S")
+#     elif format_date == 'YYYYMMDD_HHMMSS':
+#         date_text = datetime.now().strftime("%Y%m%d_%H%M%S")
+#     return date_text
 
 
-def validate_text_value(value):
+def __validate_str_value(value):
     """
     Value is a YYYY-MM-DD, YYYY/MM/DD or YYYYMMDD
     """
@@ -113,7 +202,7 @@ def validate_text_value(value):
     return result
 
 
-def str2date(input_):
+def __str2date(input_):
     """
     I do not remember the author of thus function, sorry.
     Conversion from string to datetime object.  Most of the common
@@ -129,14 +218,14 @@ def str2date(input_):
     """
     date_valid = None
 
-    if input_ is not None:
+    if input_:
         if not isinstance(input_, str):
             print('Value passed must be of type string.')
         else:
             ptime = {}
             parts = {'Y': r'(?P<y>(1|2)\d{3})',
-                     'm': r'(?P<m>(1[0-2]|0?[1-9]))',
-                     'd': r'(?P<d>([0-2]?[1-9]|[123][01]))'}
+                     'm': r'(?P<m>(1[0-2]|0[1-9]|[1-9]))',
+                     'd': r'(?P<d>(0[1-9]|[12]\d|3[01]|[1-9]))'}
             regs = []
             regs.append('^%(Y)s\D%(m)s\D%(d)s$')
             regs.append('^%(Y)s%(m)s%(d)s$')
@@ -162,7 +251,7 @@ def str2date(input_):
 
     return date_valid
 
-def str2datetime(input_):
+def __str2datetime(input_):
     """
     I do not remember the author of thus function, sorry.
     Conversion from string to datetime object.  Most of the common
@@ -184,8 +273,8 @@ def str2datetime(input_):
         else:
             ptime = {}
             parts = {'Y': r'(?P<y>(1|2)\d{3})',
-                     'm': r'(?P<m>(1[0-2]|0?[1-9]))',
-                     'd': r'(?P<d>([0-2]?[1-9]|[123][01]))',
+                     'm': r'(?P<m>(1[0-2]|0[1-9]|[1-9]))',
+                     'd': r'(?P<d>(0[1-9]|[12]\d|3[01]|[1-9]))',
                      'T': r'( (?P<H>([0-1]?[0-9])|([2][0-3])):(?P<M>[0-5]?[0-9])(:(?P<S>[0-5]?[0-9]))?)?'}
             regs = []
             regs.append('^%(Y)s\D%(m)s\D%(d)s%(T)s')
@@ -216,7 +305,7 @@ def str2datetime(input_):
 
     return date_valid
 
-def days_from_date(d):
+def __days_from_date(d):
     """
     d: date format string AAAAMMAA
     """
@@ -229,11 +318,61 @@ def days_from_date(d):
     return calc_date.days
 
 
-def format_str(value, output_format='YYYY/MM/DD'):
+def __format_str(value, output_format='YYYY/MM/DD'):
     """
-    value is a string YYYYMMDD
+    value is a string date YYYY-MM-DD
     """
-    return date2str(str2date(value), output_format)
+    if output_format in('YYYY/MM/DD', 'YYYY-MM-DD'):
+        result = date2str(str2date(value), output_format)
+    elif output_format == 'long_text':
+        text_months = {
+            1: _('january'),
+            2: _('february'),
+            3: _('march'),
+            4: _('april'),
+            5: _('may'),
+            6: _('june'),
+            7: _('july'),
+            8: _('august'),
+            9: _('september'),
+            10: _('october'),
+            11: _('november'),
+            12: _('december'),
+            }
+        value_date = str2date(value)
+        result = '{} de {} de {}'.format(
+            value_date.day,
+            text_months[value_date.month],
+            value_date.year
+            )
+    return result
+
+def __get_str_date(value, output_format='YYYY/MM/DD'):
+    """
+    value is a validated iso string date YYYY-MM-DD HH:MM:SS
+    return a string date YYYY/MM/DD
+    """
+    return value[:10].replace('-', '/')
+
+# def get_current_week_number():
+#     value = datetime.now().strftime("%V")
+#     return value
+
+
+def __get_current_date():
+    return datetime.now().strftime("%Y%m%d")
+
+# def current_time():
+#     return datetime.now().strftime("%H%M%S")
+
+def __get_current_date_time():
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+def __get_timestamp():
+    return datetime.now().strftime("%Y%m%d%H%M%S")
+    
+def __get_timestamp_iso():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # =============================================================================
 # Times
@@ -289,7 +428,7 @@ def int2time(value, precision='hun', zero_fill=False,
 
 def time2int(value, precision='hun'):
     """
-    value is a string
+    time value is a string
     time format: HH:MM:SS or HH:MM:SS.ss (ss=hundredths)
     Convert a time (string) to integer, retrun a integer
     time text is previous valided
@@ -314,17 +453,3 @@ def time2int(value, precision='hun'):
 
     return result
 
-
-def is_time(value):
-    """
-    true if time false if not time
-    """
-    is_time = False
-    if value:
-        value = value.strip()
-        if len(value):
-            temp_partes = value.replace('.', ':').replace(',', ':')
-            temp_partes = temp_partes.split(":")
-            if ''.join(temp_partes).isdigit():
-                is_time = True
-    return is_time

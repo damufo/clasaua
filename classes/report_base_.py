@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# version 20220614
 
+import time
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.platypus import Table
 from reportlab.platypus import PageBreak
@@ -18,17 +18,17 @@ from PIL import Image
 import os
 import copy
 
-from specific_functions import datetimes
 
 
 class ReportBase(object):
 
-    def __init__(self, app_path_folder, file_path, orientation='portrait', title='',
-                 subtitle=''):
+    def __init__(self, app_path_folder, file_path, orientation='portrait',
+                 title='', subtitle=''):
         '''
         Constructor
         orientation= [portrait|landscape] (vertical|horizontal)
         '''
+        self.app_path_folder = app_path_folder
 
         self.colors = colors
         if orientation == 'portrait': #vertical
@@ -39,12 +39,11 @@ class ReportBase(object):
             self.page_height = 21*cm
             self.page_width = 29.7*cm
             pagesize = landscape(A4)
-        self.app_path_folder = app_path_folder
-        images_path = '%s%s%s%s' % (self.app_path_folder, os.sep, 
+        images_path = '%s%s%s%s' % (self.app_path_folder, os.sep,
                                     'images', os.sep)
         self.title = title
         self.subtitle = subtitle
-        self.logo = Image.open('%s%s' % (images_path, 'logo_left.png'))
+        self.logo = Image.open('%s%s' % (images_path, 'logo_fegan.png'))
 
         l1 = (1*cm, self.page_height-2.3*cm, self.page_width-1.5*cm, self.page_height-2.3*cm)
         l2 = (1*cm, 1.5*cm, self.page_width-1.5*cm, 1.5*cm)
@@ -139,9 +138,6 @@ class ReportBase(object):
         self.titulo1_center = copy.copy(self.titulo1)
         self.titulo1_center.alignment = 1
 
-        self.titulo1_left = copy.copy(self.titulo1)
-        self.titulo1_left.alignment = 0
-
         self.t2_table = ParagraphStyle('',
                                       fontName='Open Sans Regular',
                                       fontSize=10,
@@ -189,7 +185,14 @@ class ReportBase(object):
 #            self.insert_paragraph(u'Un texto muy, muy, muy, pero que muuuuuuuy largo. '*20)
 #            self.insert_paragraph(u'Un texto muy, muy, muy, pero que muuuuuuuy largo. '*20)
 #            self.story.append(Spacer(1,0.2*cm))
-            
+
+    @property
+    def timestamp(self):
+        return u"%s%s" % (time.strftime(u"%Y%m%d",
+                                        time.localtime()),
+                          time.strftime(u"%H%M%S",
+                                        time.localtime(time.time())))
+        
     def build_file(self):
 #        self.doc.build(self.story, onFirstPage=self.my_first_page, onLaterPages=self.my_later_pages)
         self.doc.build(self.story, onFirstPage=self.my_first_page, onLaterPages=self.my_first_page)
@@ -199,10 +202,8 @@ class ReportBase(object):
         TA_LEFT, TA_CENTER or TA_CENTRE, TA_RIGHT and TA_JUSTIFY, 
         with values of 0, 1, 2 and 4 respectively
         '''
-        if alignment == TA_CENTER:
+        if alignment == 'CENTER':
             title = Paragraph(text, self.titulo1_center)
-        elif alignment == TA_LEFT:
-            title = Paragraph(text, self.titulo1_left)
         else:
             title = Paragraph(text, self.titulo1)
         self.story.append(title)
@@ -263,23 +264,17 @@ class ReportBase(object):
             table_formated.append(line)
         return table_formated
 
-    def insert_table(self, table, colWidths=None, rowHeights=None, style=None, pagebreak=False, alignment=None):
-        """
-        aligment = [LEFT|RIGHT|CENTER]
-        """
-        if table:
+    def insert_table(self, table, colWidths=None, rowHeights=None, style=None, pagebreak=False):
 #        Style([('FONT',(0,0),(-1,-1), 'Helvetica'), 
 ##                    ('FONTSIZE',(0,0),(-1,-1), 8),
 ##                    ('TEXTCOLOR',(0,0),(0,2), colors.blue), 
 ##                    ('TEXTCOLOR', (1,0), (1,2),colors.green)]
 #        self.story.append(Spacer(0, prev_spacer))
 
-            if pagebreak:
-                self.story.append(PageBreak())
-            t = Table(table, colWidths=colWidths, rowHeights=rowHeights, style=style)
-            if alignment:
-                t.hAlign = alignment
-            self.story.append(t)
+        if pagebreak:
+            self.story.append(PageBreak())
+        t = Table(table, colWidths=colWidths, rowHeights=rowHeights, style=style)
+        self.story.append(t)
         
     def my_first_page(self, canvas, doc):
         
@@ -374,7 +369,7 @@ class ReportBase(object):
         canvas.drawRightString((self.page_width-(1.25*cm)-string_width), self.page_height-1.9*cm, 'www.fegan.org - info@fegan.org')
     ##    pe
         canvas.drawRightString(self.page_width - 1.7 * cm, 1.0 * cm, _('Page %d') % doc.page)
-        canvas.drawString(1.7 * cm, 1.0 * cm, _('Timestamp: %s') % datetimes.get_numbers())
+        canvas.drawString(1.7 * cm, 1.0 * cm, _('Timestamp: %s') % self.timestamp)
         
         canvas.restoreState()
         

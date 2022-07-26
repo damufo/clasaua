@@ -20,17 +20,17 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: /home/damufo/pro_linux/xesde/src/locale\n"
 
-#: clasaua/classes/report_base.py:371
+#: /home/damufo/pro_linux/clasaua/src/classes/report_base.py:371
 #, python-format
 msgid "Page %d"
 msgstr "Páxina %d"
 
-#: clasaua/classes/report_base.py:372
+#: /home/damufo/pro_linux/clasaua/src/classes/report_base.py:372
 #, python-format
 msgid "Timestamp: %s"
 msgstr "Marca de tempo: %s"
 
-#: clasaua/classes/report_base.py:402
+#: /home/damufo/pro_linux/clasaua/src/classes/report_base.py:402
 #, python-format
 msgid "page %d"
 msgstr "páxina %d"

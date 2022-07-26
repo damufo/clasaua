@@ -1,6 +1,4 @@
 	
-2021-08-09
-Publish repository
 
 2019-07-15
 Now, import from ods
