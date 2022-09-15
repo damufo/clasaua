@@ -76,16 +76,16 @@ class Result():
     def __init__(self, event_id, pos):
         self.event_id = event_id
         self.pos = pos
-        if event_id != 11:
-            if pos >= len(pun_tra):
-                points = 0
-            else:
-                points = pun_tra[pos]
-        else:
+        if event_id == 10:  # OLLO! o valor de event_id é un menos que o número da travesia
             if pos >= len(pun_cto):
                 points = 0
             else:
                 points = pun_cto[pos]
+        else:
+            if pos >= len(pun_tra):
+                points = 0
+            else:
+                points = pun_tra[pos]
         self.points = points
 
     @property
@@ -275,7 +275,7 @@ class Clasaua():
             if len(line) == 7:
                 lines.append(line)
             else:
-                print("Algo fallou.")
+                print("Columnas de máis.")
 
         (EVENT_ID, POS, PERSON_ID, CLUB_ID, FULL_NAME, GENDER_ID,
          CATEGORY_ID) = range(7)
