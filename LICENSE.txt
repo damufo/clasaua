@@ -1,8 +1,0 @@
-
-This software has license GPLv3
-
-Third Party License Information
-- Logotipo FEGAN has Copyright 2016 Federación Galega de Natación
-    logo_fegan.png
-    fegan_logo.py
-- Fonts has Apache License
