@@ -2,6 +2,7 @@
 
 # Intalación
 Crear o contorno virtual python
+
 ```
 $ apt-get install python3-venv
 $ python3 -m venv .venv
@@ -9,18 +10,11 @@ $ source ./venv/bin/activate
 
 ```
 
+Dependencies
+
 ```
-$ echo "odfpy" > requirements.in
-$ echo "reportlab" >> requirements.in
-$ echo "pyinstaller" >> requirements.in
-$ python -m pip install pip-tools && pip-compile
-$ cat requirements.txt
+python = ">=3.10,<3.13"
+odfpy = "^1.4.1"
+reportlab = "^4.2.0"
 ```
-Para actualizar unha dependencia
-```
-$ pip-compile -P reportlab==3.6.10
-```
-Co de arriba cambiaria reportlab á versión 3.6.10
-```
-$ pip-sync
-```
+
