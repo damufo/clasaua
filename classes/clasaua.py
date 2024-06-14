@@ -29,10 +29,10 @@ from odf.opendocument import OpenDocumentText, load
 from odf.table import Table, TableRow, TableCell
 from odf import text
 
-from .report_base import ReportBase
+from classes.report_base import ReportBase
 from reportlab.lib.units import mm
-from .files import get_file_content
-from .clubes import clubes
+from classes.files import get_file_content
+from classes.clubes import clubes
 
 
 language = 'gl'
@@ -51,41 +51,57 @@ trans.install()
 
 events = (
     "Cto. Galego de Augas Abertas",
-    "Travesía Costa Oleiros",
-    "Travesía Praia de Oza",
     "Travesía ao Dique",
-    "Travesía Minius",
-    "Travesía Ría de Vigo",
-    "Travesía Sisargas Malpica",
-    "Travesía Praia de Coroso",
-    "Travesía Illa de Bensa",
+    "Travesía Fluvial do Lérez",
+    "Travesía Vilagarcía de Arousa",
     "Travesía Vila do Tea",
+    "Travesía Illa de Bensa",
     "Etapa Final",
 )
 
+ETAPA_FINAL = 6 # OLLO! o valor de event_id é un menos que o número da travesia
+PUNTOS_EXTRA = 7
+NUMERO_MINIMO_CLASIFICAR = 4
+NUMERO_MAXIMO_SUMAR = 4
+
 count_events = len(events)
 # Puntuations
-pun_tra = (30, 25, 21, 18, 16, 15, 14, 13, 12,
+pun_maste = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+pun_depor = (30, 25, 21, 18, 16, 15, 14, 13, 12,
             11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-pun_cto = (42, 35, 29, 24, 20, 17, 15, 14, 13,
+
+pun_maste_final = (20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3)
+pun_depor_final = (42, 35, 29, 24, 20, 17, 15, 14, 13,
             12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2)
 
 
 class Result():
 
-    def __init__(self, event_id, pos):
+    def __init__(self, event_id, pos, category_points):
+        """
+        category = ['ELITE'|'MASTE']
+        """
         self.event_id = event_id
         self.pos = pos
-        if event_id == 10:  # OLLO! o valor de event_id é un menos que o número da travesia
-            if pos >= len(pun_cto):
+        if event_id == ETAPA_FINAL:  # OLLO! o valor de event_id é un menos que o número da travesia
+            if category_points == 'MASTE':
+                list_points = pun_maste_final
+            else:
+                list_points = pun_depor_final
+
+            if pos >= len(list_points):
                 points = 0
             else:
-                points = pun_cto[pos]
+                points = list_points[pos]
         else:
-            if pos >= len(pun_tra):
+            if category_points == 'MASTE':
+                list_points = pun_maste
+            else:
+                list_points = pun_depor
+            if pos >= len(list_points):
                 points = 0
             else:
-                points = pun_tra[pos]
+                points = list_points[pos]
         self.points = points
 
     @property
@@ -104,8 +120,8 @@ class Person():
         self.club_id = club_id
         self.results = {}
 
-    def add_result(self, event_id, pos):
-        self.results[event_id] = Result(event_id, pos)
+    def add_result(self, event_id, pos, category_points):
+        self.results[event_id] = Result(event_id, pos, category_points)
     
     @property
     def club_name(self):
@@ -128,15 +144,18 @@ class Person():
     @property
     def total_points(self):
         total = -1
-        if len(self.results) > 4:
+        if len(self.results) >= NUMERO_MINIMO_CLASIFICAR:
             total = 0
             results_sorted = sorted(
                 self.results.values(), key=attrgetter('points'),
                 reverse=True)
-            for item in results_sorted[:5]:
+            for item in results_sorted[:NUMERO_MAXIMO_SUMAR]:
                 total += item.points
-        if len(self.results) >= 8:
-            total += 20
+        if len(self.results) >= PUNTOS_EXTRA:
+            if self.category_id == 'ELITE':
+                total += 20
+            else:
+                total += 10
         return total
 
 # class GrowingList(list): USADO POR VERSION marcoconti83 PODE BORRARSE
@@ -151,11 +170,12 @@ class Clasaua():
     Xerador de clasificacións do Circuíto Galego de Augas Abertas
     """
 
-    def __init__(self, app_path_folder, file_path):
+    def __init__(self, app_path_folder, app_version, file_path):
         """
         file_path is de csv file with clasificacions
         """
         self.app_path_folder = app_path_folder
+        self.app_version = app_version
         self.file_path = file_path
         self.persons = {}
 
@@ -291,16 +311,25 @@ class Clasaua():
             full_name = values[FULL_NAME].strip()
             gender_id = values[GENDER_ID].strip()
             category_id = values[CATEGORY_ID].strip()
+            if category_id == 'ABSO':
+                category_id = 'ELITE'
             if person_id in persons:
                 person = persons[person_id]
             else:
                 person = Person(
                     person_id, full_name, gender_id, category_id, club_id)
                 persons[person_id] = person
-            person.add_result(event_id, pos)
+            category_points = {
+                'MASTER1': 'MASTE',
+                'MASTER2': 'MASTE',
+                'MASTER3': 'MASTE',
+                'MASTER4': 'MASTE',
+                'ELITE': 'ELITE',
+            }
+            person.add_result(event_id, pos, category_points[category_id])
         self.persons = persons
 
-    def get_data_csv(self):
+    def get_data_csv_non_se_usa_pode_borrarse(self):
         '''
         Usado na versión inicial
         '''
@@ -355,21 +384,20 @@ class Clasaua():
         file_path = os.path.join(self.app_path_folder, 'clas_depor.pdf')
         d = ReportBase(
             app_path_folder=self.app_path_folder,
+            app_version=self.app_version,
             file_path=file_path,
                        orientation='portrait',
                        title="Circuíto Galego de Augas Abertas",
-                       subtitle='Tempada 2021/22')
+                       subtitle='Tempada 2023/24')
 
         d.insert_paragraph(
             "<b>Clasificacións individuais por categoría</b>", "CENTER")
         d.insert_spacer(1, 12)
-        # cabeceira = (
-        #     'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
-        #     '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', 'Tot.')
+        # Isto pode cambiar cada tempada
         cabeceira = (
             'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
-            '5', '6', '7', '8', '9', '10', '11', 'Tot.')
-        num_events = 11
+            '5', '6', '7', '8','Tot.')
+        num_events = 8
         table = []
         lines_title = []
         category_id = None
@@ -530,7 +558,7 @@ class Clasaua():
 
             if count_club < punt_by_club:
                 if i[GENDER] == 'F':
-                    if i[CATEGORY] == 'ABSO':
+                    if i[CATEGORY] == 'ELITE':
                         if not i[CLUB] in clas_fem_depor:
                             clas_fem_depor[i[CLUB]] = 0
                         clas_fem_depor[i[CLUB]] += i[POINTS]
@@ -539,7 +567,7 @@ class Clasaua():
                             clas_fem_maste[i[CLUB]] = 0
                         clas_fem_maste[i[CLUB]] += i[POINTS]
                 elif i[GENDER] == 'M':
-                    if i[CATEGORY] == 'ABSO':
+                    if i[CATEGORY] == 'ELITE':
                         if not i[CLUB] in clas_mas_depor:
                             clas_mas_depor[i[CLUB]] = 0
                         clas_mas_depor[i[CLUB]] += i[POINTS]
@@ -564,20 +592,23 @@ class Clasaua():
         clas_mas_maste = sorted(clas_mas_maste, key=lambda tup: tup[1],
                                 reverse=True)
 
-        file_path = os.path.join(self.app_path_folder, 'clas_clube.pdf')
+        file_path = os.path.join(self.app_path_folder, 'clas_club.pdf')
 
-        d = ReportBase(app_path_folder=self.app_path_folder,
-                       file_path=file_path,
-                       orientation='portrait',
-                       title="Circuíto Galego de Augas Abertas",
-                       subtitle='Tempada 2021/22')
+        d = ReportBase(
+            app_path_folder=self.app_path_folder,
+            app_version=self.app_version,
+            file_path=file_path,
+            orientation='portrait',
+            title="Circuíto Galego de Augas Abertas",
+            subtitle='Tempada 2023/24',
+            )
         d.insert_spacer(1, 12)
 
         clasifications = (
-            ('Clasificación por clubes deportistas feminina', clas_fem_depor),
-            ('Clasificación por clubes deportistas masculina', clas_mas_depor),
-            ('Clasificación por clubes máster feminina', clas_fem_maste),
-            ('Clasificación por clubes máster masculina', clas_mas_maste),
+            ('Clasificación por clubs élite feminina', clas_fem_depor),
+            ('Clasificación por clubs élite masculina', clas_mas_depor),
+            ('Clasificación por clubs máster feminina', clas_fem_maste),
+            ('Clasificación por clubs máster masculina', clas_mas_maste),
         )
         for clasification in clasifications:
             title = clasification[0]
