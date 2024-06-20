@@ -12,7 +12,7 @@ from clasaua.lib.clasaua import Clasaua
 
 def clasaua():
     print("Hello, world!")
-    # Clasaua(app_path_folder=app_path_folder, file_path=file_path)
+
     arguments = sys.argv
     app_file_path = re.sub(r'(-script\.py|-script\.pyw|\.exe)?$', '', arguments[0])
 
@@ -37,10 +37,9 @@ def clasaua():
             if images_in_work_path_folder:
                 images_in_work_path_folder = work_path_folder
             print('work path folder' + work_path_folder)
-            
+            Clasaua(app_path_folder=app_path_folder, file_path=file_path, work_path_folder=images_in_work_path_folder)
         else:
             print("Clasifications file path not exists.")
     else:
         print("Please specify the ODS file with the classification.")
-    Clasaua(app_path_folder=app_path_folder, file_path=file_path, work_path_folder=images_in_work_path_folder)
 
