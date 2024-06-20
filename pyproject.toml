@@ -36,3 +36,20 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 clasauaa = "clasaua.launcher:clasaua"
+
+
+[tool.poetry-pyinstaller-plugin]
+# Pyinstaller version (Optional, latest if not set)
+# Does not support version constraint (eg: ^6.4)
+version = "6.7.0"
+
+# Disable UPX compression
+disable-upx = true
+
+
+[tool.poetry-pyinstaller-plugin.scripts]
+myclas = { source = "clasaua/launcher.py", type = "onedir", bundle = false }
+
+[tool.poetry-pyinstaller-plugin.collect]
+# Collect all submodules, data files & binaries for 'package_A' and 'package_B'
+all = ['odf', 'reportlab']
