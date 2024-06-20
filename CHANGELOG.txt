@@ -1,4 +1,16 @@
-	
+2024-06-19
+poetry e publicación pypi.
+Colle logos do cartafol de traballo se é que están presentes.
+PDF: Creador, título e autor.
+
+
+2024-06-18
+poetry e publicación pypi
+
+
+2024-06-14
+poetry e publicación pypi	
+
 
 2019-07-15
 Now, import from ods

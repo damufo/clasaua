@@ -23,7 +23,7 @@ from datetime import datetime
 class ReportBase(object):
 
     def __init__(self, app_path_folder, app_version, file_path, orientation='portrait', title='',
-                 subtitle=''):
+                 subtitle='', work_path_folder=None):
         '''
         Constructor
         orientation= [portrait|landscape] (vertical|horizontal)
@@ -40,11 +40,17 @@ class ReportBase(object):
             self.page_width = 29.7*cm
             pagesize = landscape(A4)
         self.app_path_folder = app_path_folder
-        images_path = '%s%s%s%s' % (self.app_path_folder, os.sep, 
+        if work_path_folder:
+            images_path = '%s%s' % (work_path_folder, os.sep) 
+        else:
+            images_path = '%s%s%s%s' % (self.app_path_folder, os.sep, 
                                     'images', os.sep)
         self.app_version = app_version
+        self.author = os.environ.get('USER', os.environ.get('USERNAME'))
+        self.creator = 'Clasaua {}'.format(self.app_version)
         self.title = title
         self.subtitle = subtitle
+        
         self.logo_left = Image.open('%s%s' % (images_path, 'logo_left.png'))
         self.logo_right = Image.open('%s%s' % (images_path, 'logo_right.png'))
         self.logo_foot = Image.open('%s%s' % (images_path, 'logo_foot.png'))
@@ -282,9 +288,10 @@ class ReportBase(object):
         
     def my_first_page(self, canvas, doc):
         
-        canvas.setAuthor('FEGAN')
+        canvas.setAuthor(self.author)
+        canvas.setCreator(self.creator)
         canvas.setSubject('')
-        canvas.setTitle('')
+        canvas.setTitle(self.title)
         
         canvas.saveState()
         start_y_foot = 3.2*cm

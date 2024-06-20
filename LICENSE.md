@@ -11,6 +11,9 @@ The following images included in this project are copyrighted and not covered by
 
 - `logo_fegan.png`: © Federación Galega de Natación, 2016
 - `fegan_logo.py`: © Federación Galega de Natación, 2016
+- `images/logo_left.png`: © Federación Galega de Natación, 2016
+- `images/logo_right.png`: © Federación Galega de Natación, 2016
+- `images/logo_foot.png`: © Federación Galega de Natación, 2016
 
 These images cannot be reproduced, distributed, modified or used without the express permission of the author.
 

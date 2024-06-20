@@ -17,39 +17,32 @@
 # Copyright (C) 2019 Federacion Galega de Natación (FEGAN) http://www.fegan.org
 # Author: Daniel Muñiz Fontoira (2017) <dani@damufo.com>
 
+import os
+import sys
+import re
+from operator import attrgetter
+
 import gettext
 from gettext import ngettext
 import locale 
-
-import os
-import sys
-from operator import attrgetter
 
 from odf.opendocument import OpenDocumentText, load
 from odf.table import Table, TableRow, TableCell
 from odf import text
 
-from classes.report_base import ReportBase
 from reportlab.lib.units import mm
-from classes.files import get_file_content
-from classes.clubes import clubes
+
+from clasaua.lib.report_base import ReportBase
+from clasaua.lib.files import get_file_content
+from clasaua.lib.clubes import clubes
+
+# ARGS = sys.argv[0] = re.sub(r'(-script\.py|-script\.pyw|\.exe)?$', '', sys.argv[0])
+# print(ARGS)
+APP_VERSION =  '0.4.0'
+APP_VERSION_DATE =  '20240612'
 
 
-language = 'gl'
-if not language:
-    language = 'en'
-# locale.getlocale()[0][0:2]
-filename = "locale/messages_{}.mo".format(language)
-
-try:
-    trans = gettext.GNUTranslations(open(filename, "rb"))
-except IOError:
-    trans = gettext.NullTranslations()
-
-trans.install() 
-
-
-events = (
+EVENTS = (
     "Cto. Galego de Augas Abertas",
     "Travesía ao Dique",
     "Travesía Fluvial do Lérez",
@@ -64,14 +57,14 @@ PUNTOS_EXTRA = 7
 NUMERO_MINIMO_CLASIFICAR = 4
 NUMERO_MAXIMO_SUMAR = 4
 
-count_events = len(events)
+COUNT_EVENTS = len(EVENTS)
 # Puntuations
-pun_maste = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-pun_depor = (30, 25, 21, 18, 16, 15, 14, 13, 12,
+PUN_MASTE = (15, 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+PUN_DEPOR = (30, 25, 21, 18, 16, 15, 14, 13, 12,
             11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
-pun_maste_final = (20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3)
-pun_depor_final = (42, 35, 29, 24, 20, 17, 15, 14, 13,
+PUN_MASTE_FINAL = (20, 16, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3)
+PUN_DEPOR_FINAL = (42, 35, 29, 24, 20, 17, 15, 14, 13,
             12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2)
 
 
@@ -85,9 +78,9 @@ class Result():
         self.pos = pos
         if event_id == ETAPA_FINAL:  # OLLO! o valor de event_id é un menos que o número da travesia
             if category_points == 'MASTE':
-                list_points = pun_maste_final
+                list_points = PUN_MASTE_FINAL
             else:
-                list_points = pun_depor_final
+                list_points = PUN_DEPOR_FINAL
 
             if pos >= len(list_points):
                 points = 0
@@ -95,9 +88,9 @@ class Result():
                 points = list_points[pos]
         else:
             if category_points == 'MASTE':
-                list_points = pun_maste
+                list_points = PUN_MASTE
             else:
-                list_points = pun_depor
+                list_points = PUN_DEPOR
             if pos >= len(list_points):
                 points = 0
             else:
@@ -106,7 +99,7 @@ class Result():
 
     @property
     def name(self):
-        return events[self.pos]
+        return EVENTS[self.pos]
 
 
 class Person():
@@ -133,7 +126,7 @@ class Person():
     @property
     def results_text(self):
         values = []
-        for event_id in range(count_events):
+        for event_id in range(COUNT_EVENTS):
             if event_id in self.results:
                 values.append(str(self.results[event_id].points))
             else:
@@ -170,98 +163,48 @@ class Clasaua():
     Xerador de clasificacións do Circuíto Galego de Augas Abertas
     """
 
-    def __init__(self, app_path_folder, app_version, file_path):
+    def __init__(self, app_path_folder, file_path, work_path_folder):
         """
-        file_path is de csv file with clasificacions
+        file_path is the ods clasifications file
         """
+        language = 'gl'
+        if not language:
+            language = 'en'
+        # locale.getlocale()[0][0:2]
+        filename = "locale/messages_{}.mo".format(language)
+
+        try:
+            trans = gettext.GNUTranslations(open(filename, "rb"))
+        except IOError:
+            trans = gettext.NullTranslations()
+
+        trans.install() 
+
         self.app_path_folder = app_path_folder
-        self.app_version = app_version
+        self.work_path_folder = work_path_folder
+        self.app_version = APP_VERSION
+        self.app_version_date = APP_VERSION_DATE
         self.file_path = file_path
         self.persons = {}
+        # print(arguments)
+        # if len(arguments) > 1:
+        #     print(arguments)
+        #     file_path = arguments[1]
+        #     if os.path.isfile(file_path):
+                # self.file_path = file_path
+        #         self.app_path_folder = os.path.dirname(os.path.realpath(__file__))            
+        #         self.work_dir = os.getcwd()
+        #         print(self.app_path_folder)
+        #         print(self.work_dir)
+        self.get_data_ods()
+        self.gen_person_report()
+        self.gen_club_report()
+        #     else:
+        #         print(_("Clasifications file path not exists."))
+        # else:
+        #     print(_("Please specify the ODS file with the classification."))
 
-    # def get_data_ods(self): PODE BORRARSE
-    #     '''
-    #     https://github.com/marcoconti83/read-ods-with-odfpy
-    #     '''   
-    #     self.clonespannedcolumns = True
-    #     from odf.opendocument import OpenDocumentText, load
-    #     from odf.table import Table, TableRow, TableCell
-    #     from odf import text
-    #     from odf.text import P
-    #     spreadsheetdoc = load(self.file_path)
 
-    #     sheet = spreadsheetdoc.spreadsheet        
-    #     rows = sheet.getElementsByType(TableRow)
-    #     arr_rows = []
-
-    #     # for each row
-    #     for row in rows:
-    #         row_comment = ""
-    #         arr_cells = GrowingList()
-    #         cells = row.getElementsByType(TableCell)
-
-    #         # for each cell
-    #         count = 0
-    #         for cell in cells:
-    #             # repeated value?
-    #             repeat = cell.getAttribute("numbercolumnsrepeated")
-    #             if not repeat:
-    #                 repeat = 1
-    #                 spanned = int(cell.getAttribute('numbercolumnsspanned') or 0)
-    #                 # clone spanned cells
-    #                 if self.clonespannedcolumns is not None and spanned > 1:
-    #                     repeat = spanned
-
-    #             ps = cell.getElementsByType(P)
-    #             text_content = ""
-
-    #             # for each text/text:span node
-    #             for p in ps:
-    #                 for n in p.childNodes:
-    #                     if (n.nodeType == 1 and n.tagName == "text:span"):
-    #                         for c in n.childNodes:
-    #                             if c.nodeType == 3:
-    #                                 text_content = '{}{}'.format(
-    #                                     text_content, n.data)
-    #                     if n.nodeType == 3:
-    #                         text_content = '{}{}'.format(text_content, n.data)
-
-    #             if(text_content):
-    #                 if(text_content[0] != "#"):  # ignore comments cells
-    #                     for rr in range(int(repeat)):  # repeated?
-    #                         arr_cells[count] = text_content
-    #                         count += 1
-    #                 else:
-    #                     row_comment = row_comment + text_content + " "
-    #             else:
-    #                 for rr in range(int(repeat)):
-    #                     count += 1
-
-    #         # if row contained something
-    #         if len(arr_cells):
-    #             arr_rows.append(arr_cells)
-        
-    #     (EVENT_ID, POS, PERSON_ID, CLUB_ID, FULL_NAME, GENDER_ID, CATEGORY_ID) = range(7)
-    #     persons = {}
-
-    #     for values in arr_rows:
-    #         event_id = int(values[EVENT_ID]) - 1
-    #         pos = int(values[POS]) - 1
-    #         person_id = values[PERSON_ID].strip()
-    #         club_id = values[CLUB_ID].strip()
-    #         if len(club_id) < 5:
-    #             club_id = club_id.zfill(5)
-    #         full_name = values[FULL_NAME].strip()
-    #         gender_id = values[GENDER_ID].strip()
-    #         category_id = values[CATEGORY_ID].strip()
-    #         if person_id in persons:
-    #             person = persons[person_id]
-    #         else:
-    #             person = Person(
-    #                 person_id, full_name, gender_id, category_id, club_id)
-    #             persons[person_id] = person
-    #         person.add_result(event_id, pos)
-    #     self.persons = persons
 
     def get_data_ods(self):
         '''
@@ -329,38 +272,38 @@ class Clasaua():
             person.add_result(event_id, pos, category_points[category_id])
         self.persons = persons
 
-    def get_data_csv_non_se_usa_pode_borrarse(self):
-        '''
-        Usado na versión inicial
-        '''
-        content = get_file_content(file_path=self.file_path,
-                                   mode="lines",
-                                   compressed=False,
-                                   encoding="utf8")
+    # def get_data_csv_non_se_usa_pode_borrarse(self):
+    #     '''
+    #     Usado na versión inicial
+    #     '''
+    #     content = get_file_content(file_path=self.file_path,
+    #                                mode="lines",
+    #                                compressed=False,
+    #                                encoding="utf8")
 
-        (EVENT_ID, POS, PERSON_ID, CLUB_ID, FULL_NAME, GENDER_ID,
-         CATEGORY_ID) = range(7)
-        persons = {}
+    #     (EVENT_ID, POS, PERSON_ID, CLUB_ID, FULL_NAME, GENDER_ID,
+    #      CATEGORY_ID) = range(7)
+    #     persons = {}
 
-        for line in content:
-            values = line.strip().split('#')
-            event_id = int(values[EVENT_ID]) - 1
-            pos = int(values[POS]) - 1
-            person_id = values[PERSON_ID]
-            club_id = values[CLUB_ID]
-            if len(club_id) < 5:
-                club_id = club_id.zfill(5)
-            full_name = values[FULL_NAME]
-            gender_id = values[GENDER_ID]
-            category_id = values[CATEGORY_ID]
-            if person_id in persons:
-                person = persons[person_id]
-            else:
-                person = Person(
-                    person_id, full_name, gender_id, category_id, club_id)
-                persons[person_id] = person
-            person.add_result(event_id, pos)
-        self.persons = persons
+    #     for line in content:
+    #         values = line.strip().split('#')
+    #         event_id = int(values[EVENT_ID]) - 1
+    #         pos = int(values[POS]) - 1
+    #         person_id = values[PERSON_ID]
+    #         club_id = values[CLUB_ID]
+    #         if len(club_id) < 5:
+    #             club_id = club_id.zfill(5)
+    #         full_name = values[FULL_NAME]
+    #         gender_id = values[GENDER_ID]
+    #         category_id = values[CATEGORY_ID]
+    #         if person_id in persons:
+    #             person = persons[person_id]
+    #         else:
+    #             person = Person(
+    #                 person_id, full_name, gender_id, category_id, club_id)
+    #             persons[person_id] = person
+    #         person.add_result(event_id, pos)
+    #     self.persons = persons
 
     def gen_person_report(self):
 
@@ -381,14 +324,16 @@ class Clasaua():
         #         item.person_id, item.surname, item.name, item.club_name,
         #         item.results_text)
 
-        file_path = os.path.join(self.app_path_folder, 'clas_depor.pdf')
+        # file_path = os.path.join(self.app_path_folder, 'clas_depor.pdf')
+        file_path = 'clas_depor.pdf'
         d = ReportBase(
             app_path_folder=self.app_path_folder,
             app_version=self.app_version,
             file_path=file_path,
-                       orientation='portrait',
-                       title="Circuíto Galego de Augas Abertas",
-                       subtitle='Tempada 2023/24')
+            orientation='portrait',
+            title="Circuíto Galego de Augas Abertas",
+            subtitle='Tempada 2023/24',
+            work_path_folder=self.work_path_folder)
 
         d.insert_paragraph(
             "<b>Clasificacións individuais por categoría</b>", "CENTER")
@@ -397,7 +342,7 @@ class Clasaua():
         cabeceira = (
             'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
             '5', '6', '7', '8','Tot.')
-        num_events = 8
+        NUM_EVENTS = 8
         table = []
         lines_title = []
         category_id = None
@@ -472,7 +417,7 @@ class Clasaua():
 
         col_widths = ['3%', '7%', '20%', '12%', '11%']
 
-        col_widths.extend(['{}%'.format((42/num_events)),] * num_events)
+        col_widths.extend(['{}%'.format((42/NUM_EVENTS)),] * NUM_EVENTS)
         col_widths.extend(['5%',])
         # row_heghts = [14*mm]
         row_heghts = None
@@ -483,20 +428,20 @@ class Clasaua():
         d.insert_spacer(1, 24)
         table = []
         table.append(('Relación de sedes:', ))
-        total_items = len(events)
+        total_items = len(EVENTS)
         corte = total_items//3
         if total_items % 3:
             corte += 1
         for i in range(corte):
             line = []
             if i < total_items:
-                line.append('{}. {}'.format(i+1, events[i]))
+                line.append('{}. {}'.format(i+1, EVENTS[i]))
             if (i + corte) < total_items:
-                line.append('{}. {}'.format(i+corte+1, events[i+corte]))
+                line.append('{}. {}'.format(i+corte+1, EVENTS[i+corte]))
             else:
                 line.append('')
             if (i + (corte*2)) < total_items:
-                line.append('{}. {}'.format(i+(corte*2)+1, events[i+(corte*2)]))
+                line.append('{}. {}'.format(i+(corte*2)+1, EVENTS[i+(corte*2)]))
             else:
                 line.append('')
 
@@ -592,7 +537,8 @@ class Clasaua():
         clas_mas_maste = sorted(clas_mas_maste, key=lambda tup: tup[1],
                                 reverse=True)
 
-        file_path = os.path.join(self.app_path_folder, 'clas_club.pdf')
+        # file_path = os.path.join(self.app_path_folder, 'clas_club.pdf')
+        file_path = 'clas_club.pdf'
 
         d = ReportBase(
             app_path_folder=self.app_path_folder,
@@ -601,7 +547,7 @@ class Clasaua():
             orientation='portrait',
             title="Circuíto Galego de Augas Abertas",
             subtitle='Tempada 2023/24',
-            )
+            work_path_folder=self.work_path_folder)
         d.insert_spacer(1, 12)
 
         clasifications = (
