@@ -38,8 +38,8 @@ from clasaua.lib.clubes import clubes
 
 # ARGS = sys.argv[0] = re.sub(r'(-script\.py|-script\.pyw|\.exe)?$', '', sys.argv[0])
 # print(ARGS)
-APP_VERSION =  '0.4.0'
-APP_VERSION_DATE =  '20240612'
+APP_VERSION =  '0.4.8'
+APP_VERSION_DATE =  '2024-06-27'
 
 
 EVENTS = (
