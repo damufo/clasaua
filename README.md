@@ -9,6 +9,15 @@ odfpy = "^1.4.1"
 reportlab = "^4.2.0"
 ```
 
+## Execute from source
+
+Linux
+
+```
+source .venv/bin/activate
+python clasaua/launcher.py clasificacion_.ods
+```
+
 
 ## Intalación
 
@@ -19,7 +28,7 @@ Linux
 ```
 apt-get install python3-venv
 python3 -m venv .venv
-source ./venv/bin/activate
+source .venv/bin/activate
 pip install clasaua-0.4.7-py3-none-any.whl
 clasaua clasificacion_.ods
 ```
@@ -54,4 +63,15 @@ Columns:
 - surname, name: string participant surname, name 
 - gender_id: string [M:male|F:female]
 - category_id: string [ABSO|MASTER1|MASTER2|MASTER3|MASTER4]
+
+Poetry
+
+add pypi key:
+poetry config pypi-token.pypi pypi-BgEI....
+
+poetry update
+poetry build
+poetry publish
+
+
 
