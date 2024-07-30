@@ -551,8 +551,8 @@ class Clasaua():
         d.insert_spacer(1, 12)
 
         clasifications = (
-            ('Clasificación por clubs élite feminina', clas_fem_depor),
-            ('Clasificación por clubs élite masculina', clas_mas_depor),
+            ('Clasificación por clubs elite feminina', clas_fem_depor),
+            ('Clasificación por clubs elite masculina', clas_mas_depor),
             ('Clasificación por clubs máster feminina', clas_fem_maste),
             ('Clasificación por clubs máster masculina', clas_mas_maste),
         )
