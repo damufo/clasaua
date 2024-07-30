@@ -34,7 +34,7 @@ from reportlab.lib.units import mm
 
 from clasaua.lib.report_base import ReportBase
 from clasaua.lib.files import get_file_content
-from clasaua.lib.clubes import clubes
+from clasaua.lib.clubs import clubs
 
 # ARGS = sys.argv[0] = re.sub(r'(-script\.py|-script\.pyw|\.exe)?$', '', sys.argv[0])
 # print(ARGS)
@@ -119,8 +119,8 @@ class Person():
     @property
     def club_name(self):
         club_name = ''
-        if self.club_id in clubes:
-            club_name = clubes[self.club_id][0]
+        if self.club_id in clubs:
+            club_name = clubs[self.club_id][0]
         return club_name
 
     @property
@@ -568,8 +568,8 @@ class Clasaua():
             for i in res:
                 club_id = i[0]
                 club_name = ''
-                if club_id in clubes:
-                    club_name = clubes[club_id][1]
+                if club_id in clubs:
+                    club_name = clubs[club_id][1]
                 points = i[1]
                 if current_points != points:
                     current_pos += 1

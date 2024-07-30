@@ -24,7 +24,7 @@ select "'" || club_id ||"': ('" || short_desc ||"', '" || long_desc || "'),"
 from clubs where not club_id like "D%"order by club_id;
 """
 
-clubes = {
+clubs = {
 '00001': ('SALINAS', 'R.C. NAUTICO SALINAS'),
 '00002': ('SPARTAL', 'C. ESPARTAL'),
 '00003': ('NOVIEDO', 'C.N.CIUDAD DE OVIEDO'),
@@ -1026,4 +1026,5 @@ clubes = {
 'P1101': ('ACUATICA', 'C. NAT. ACUATICA'),
 'P1103': ('CNCERVO', 'C. NAT.CERVO'),
 '01621': ('VULCANIA', 'C. N. VULCANIA MÁSTER'),
+'P1202': ('GREDOSSD', 'C. D. GREDOS SAN DIEGO'),
 }
