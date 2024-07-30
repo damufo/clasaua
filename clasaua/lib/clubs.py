@@ -27,7 +27,7 @@ from clubs where not club_id like "D%"order by club_id;
 
 import csv
 clubs = {}
-with open('clubs.csv', newline='') as f:
+with open('clubs.csv', encoding="utf8", newline='') as f:
     reader = csv.reader(f, dialect='unix', delimiter=',')
     for row in reader:
         clubs[row[0]] = (row[1], row[2])
