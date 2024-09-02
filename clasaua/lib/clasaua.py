@@ -341,7 +341,7 @@ class Clasaua():
         # Isto pode cambiar cada tempada
         cabeceira = (
             'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
-            '5', '6', '7', '8','Tot.')
+            '5', '6', '7', 'Tot.')
         NUM_EVENTS = 8
         table = []
         lines_title = []
