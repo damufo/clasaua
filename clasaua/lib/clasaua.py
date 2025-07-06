@@ -43,7 +43,7 @@ APP_VERSION =  '0.4.11'
 APP_VERSION_DATE =  '2025-07-06'
 
 
-EVENTS = open('events.csv', 'r')
+EVENTS = open('events.csv', 'r', encoding="utf8")
 EVENTS = EVENTS.read().splitlines()
 EVENTS = tuple(EVENTS)
 
