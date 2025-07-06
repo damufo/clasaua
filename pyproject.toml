@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "clasaua"
-version = "0.4.10"
+version = "0.4.11"
 description = "Clasificacions circuito galego augas abertas"
 authors = ["Dani MF <dani@damufo.eu>"]
 repository = "https://github.com/damufo/clasaua/"

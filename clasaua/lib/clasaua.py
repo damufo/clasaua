@@ -39,24 +39,38 @@ from clasaua.lib.clubs import clubs
 # ARGS = sys.argv[0] = re.sub(r'(-script\.py|-script\.pyw|\.exe)?$', '', sys.argv[0])
 # print(ARGS)
 
-APP_VERSION =  '0.4.10'
-APP_VERSION_DATE =  '2024-09-02'
+APP_VERSION =  '0.4.11'
+APP_VERSION_DATE =  '2025-07-06'
 
 
-EVENTS = (
-    "Cto. Galego de Augas Abertas",
-    "Travesía ao Dique",
-    "Travesía Fluvial do Lérez",
-    "Travesía Vilagarcía de Arousa",
-    "Travesía Vila do Tea",
-    "Travesía Illa de Bensa",
-    "Etapa Final",
-)
+EVENTS = open('events.csv', 'r')
+EVENTS = EVENTS.read().splitlines()
+EVENTS = tuple(EVENTS)
 
-ETAPA_FINAL = 6 # OLLO! o valor de event_id é un menos que o número da travesia
-PUNTOS_EXTRA = 7
+# EVENTS = (
+#     'Cto. Galego de Augas Abertas',
+#     'Travesía do Caneiro',
+# )
+
+# EVENTS_CHOICES = tuple([(i, i) for i in EVENTS]) 
+
+# EVENTS = (
+#     "Cto. Galego de Augas Abertas",
+#     "Travesía do Caneiro",
+#     "Travesía ao Dique",
+#     "Travesía Fluvial do Lérez",
+#     "Travesía Vila do Tea",
+#     "Travesía Vilagarcía de Arousa",
+#     "Travesía Illa de Bensa",
+#     "Travesía Descenso do Río Miño",
+#     "Travesía de Miño",
+#     "Travesía Castrelo de Miño",
+# )
+
+ETAPA_FINAL = 9 # OLLO! o valor de event_id é un menos que o número da travesia
+PUNTOS_EXTRA = 7  # número de probas con puntos para obter puntos extra
 NUMERO_MINIMO_CLASIFICAR = 4
-NUMERO_MAXIMO_SUMAR = 4
+NUMERO_MAXIMO_SUMAR = 5
 
 COUNT_EVENTS = len(EVENTS)
 # Puntuations
@@ -145,7 +159,11 @@ class Person():
                 reverse=True)
             for item in results_sorted[:NUMERO_MAXIMO_SUMAR]:
                 total += item.points
-        if len(self.results) >= PUNTOS_EXTRA:
+        # Só se contan probas con puntos
+        results_with_points = len([ i for i in self.results.values() if i.points > 0])
+        if len(self.results) != results_with_points:
+            print("ten resultados sen puntos")
+        if results_with_points >= PUNTOS_EXTRA:
             if self.category_id == 'ELITE':
                 total += 20
             else:
@@ -339,11 +357,11 @@ class Clasaua():
         d.insert_paragraph(
             "<b>Clasificacións individuais por categoría</b>", "CENTER")
         d.insert_spacer(1, 12)
+        NUM_EVENTS = len(EVENTS)
         # Isto pode cambiar cada tempada
-        cabeceira = (
-            'Pos', 'Licenza', 'Apelidos', 'Nome', 'Clube', '1', '2', '3', '4',
-            '5', '6', '7', 'Tot.')
-        NUM_EVENTS = 8
+        cabeceira = ('Pos', 'Licenza', 'Apelidos', 'Nome', 'Club')
+        cabeceira += tuple(str(val+1) for val in range(NUM_EVENTS))
+        cabeceira += ('Tot.', )
         table = []
         lines_title = []
         category_id = None
@@ -429,7 +447,7 @@ class Clasaua():
         d.insert_spacer(1, 24)
         table = []
         table.append(('Relación de sedes:', ))
-        total_items = len(EVENTS)
+        total_items = NUM_EVENTS
         corte = total_items//3
         if total_items % 3:
             corte += 1
