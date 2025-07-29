@@ -39,8 +39,8 @@ from clasaua.lib.clubs import clubs
 # ARGS = sys.argv[0] = re.sub(r'(-script\.py|-script\.pyw|\.exe)?$', '', sys.argv[0])
 # print(ARGS)
 
-APP_VERSION =  '0.4.11'
-APP_VERSION_DATE =  '2025-07-06'
+APP_VERSION =  '0.4.12'
+APP_VERSION_DATE =  '2025-07-29'
 
 
 EVENTS = open('events.csv', 'r', encoding="utf8")
@@ -288,6 +288,7 @@ class Clasaua():
                 'MASTER4': 'MASTE',
                 'ELITE': 'ELITE',
             }
+            print(pos)
             person.add_result(event_id, pos, category_points[category_id])
         self.persons = persons
 
@@ -351,7 +352,7 @@ class Clasaua():
             file_path=file_path,
             orientation='portrait',
             title="Circuíto Galego de Augas Abertas",
-            subtitle='Tempada 2023/24',
+            subtitle='Tempada 2024/25',
             work_path_folder=self.work_path_folder)
 
         d.insert_paragraph(
@@ -565,7 +566,7 @@ class Clasaua():
             file_path=file_path,
             orientation='portrait',
             title="Circuíto Galego de Augas Abertas",
-            subtitle='Tempada 2023/24',
+            subtitle='Tempada 2024/25',
             work_path_folder=self.work_path_folder)
         d.insert_spacer(1, 12)
 
