@@ -1,3 +1,56 @@
+2026-07-30
+Update season 2025-26
+Reports. Update season title.
+Add. Category MASTER5.
+
+
+
+2025-07-06 5h
+
+Update season 2024-25
+Se un deportista e descualificado ou non remata unha travesía contalle como 0 
+puntos, pero debe ser contabilizada como que fixo esa proba, de cara ao número 
+mínimo de participacións para clasificar. Para clasificar teñen que tomar a 
+saida en 4.
+
+De cara a clasificación teremos en conta as 5 mellores puntuacións.
+
+Para o bonus teñen que puntuar (0 non vale) en 7.
+
+Entregaranse medallas FINISHER a quen puntue en todas as etapas do circuíto.
+Release version 0.4.11
+Build 
+Publish
+
+2024-07-30 4h
+Fix label élite to elite
+Add club
+Move clubs from source to csv file
+Release version 0.4.9
+Build 
+Publish
+
+
+2024-07-29 1h
+Add club
+Rename clubes to club
+Add execute from source for README.md file.
+
+
+2024-06-27 6h
+Empaquetado en windows
+
+
+2024-06-26 6h
+Empaquetado en windows
+
+
+2024-06-20 7h
+Intento de creación de executable para linux sen exito, finalmente abrín unha 
+incidencia no proxecto do desenvolvedor.
+https://github.com/thmahe/poetry-pyinstaller-plugin/issues/14
+
+
 2024-06-19
 poetry e publicación pypi.
 Colle logos do cartafol de traballo se é que están presentes.

@@ -4,7 +4,7 @@
 import os
 import re
 import sys
-from clasaua.lib.clasaua import Clasaua
+from lib.clasaua import Clasaua
 
 
 def clasaua():

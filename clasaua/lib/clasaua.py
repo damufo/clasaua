@@ -32,15 +32,15 @@ from odf import text
 
 from reportlab.lib.units import mm
 
-from clasaua.lib.report_base import ReportBase
-from clasaua.lib.files import get_file_content
-from clasaua.lib.clubs import clubs
+from lib.report_base import ReportBase
+from lib.files import get_file_content
+from lib.clubs import clubs
 
 # ARGS = sys.argv[0] = re.sub(r'(-script\.py|-script\.pyw|\.exe)?$', '', sys.argv[0])
 # print(ARGS)
 
 APP_VERSION =  '0.4.12'
-APP_VERSION_DATE =  '2025-07-29'
+APP_VERSION_DATE =  '2026-07-30'
 
 
 EVENTS = open('events.csv', 'r', encoding="utf8")
@@ -286,6 +286,7 @@ class Clasaua():
                 'MASTER2': 'MASTE',
                 'MASTER3': 'MASTE',
                 'MASTER4': 'MASTE',
+                'MASTER5': 'MASTE',
                 'ELITE': 'ELITE',
             }
             print(pos)
@@ -352,7 +353,7 @@ class Clasaua():
             file_path=file_path,
             orientation='portrait',
             title="Circuíto Galego de Augas Abertas",
-            subtitle='Tempada 2024/25',
+            subtitle='Tempada 2025/26',
             work_path_folder=self.work_path_folder)
 
         d.insert_paragraph(
@@ -507,8 +508,10 @@ class Clasaua():
         current_club = None
         clas_fem_depor = {}
         clas_mas_depor = {}
+        clas_tot_depor = {}
         clas_fem_maste = {}
         clas_mas_maste = {}
+        clas_tot_maste = {}
         # Converte as puntuacións de diccionario a táboa
         count_club = 0
         current_club = None
@@ -527,34 +530,52 @@ class Clasaua():
                         if not i[CLUB] in clas_fem_depor:
                             clas_fem_depor[i[CLUB]] = 0
                         clas_fem_depor[i[CLUB]] += i[POINTS]
+                        if not i[CLUB] in clas_tot_depor:
+                            clas_tot_depor[i[CLUB]] = 0
+                        clas_tot_depor[i[CLUB]] += i[POINTS]
                     else:
                         if not i[CLUB] in clas_fem_maste:
                             clas_fem_maste[i[CLUB]] = 0
                         clas_fem_maste[i[CLUB]] += i[POINTS]
+                        if not i[CLUB] in clas_tot_maste:
+                            clas_tot_maste[i[CLUB]] = 0
+                        clas_tot_maste[i[CLUB]] += i[POINTS]
                 elif i[GENDER] == 'M':
                     if i[CATEGORY] == 'ELITE':
                         if not i[CLUB] in clas_mas_depor:
                             clas_mas_depor[i[CLUB]] = 0
                         clas_mas_depor[i[CLUB]] += i[POINTS]
+                        if not i[CLUB] in clas_tot_depor:
+                            clas_tot_depor[i[CLUB]] = 0
+                        clas_tot_depor[i[CLUB]] += i[POINTS]
                     else:
                         if not i[CLUB] in clas_mas_maste:
                             clas_mas_maste[i[CLUB]] = 0
                         clas_mas_maste[i[CLUB]] += i[POINTS]
+                        if not i[CLUB] in clas_tot_maste:
+                            clas_tot_maste[i[CLUB]] = 0
+                        clas_tot_maste[i[CLUB]] += i[POINTS]
                 count_club += 1
 
         # convert to tuple
         clas_fem_depor = [ (k, v) for k, v  in clas_fem_depor.items()]
         clas_mas_depor = [ (k, v) for k, v  in clas_mas_depor.items()]
+        clas_tot_depor = [ (k, v) for k, v  in clas_tot_depor.items()]
         clas_fem_maste = [ (k, v) for k, v  in clas_fem_maste.items()]
         clas_mas_maste = [ (k, v) for k, v  in clas_mas_maste.items()]
+        clas_tot_maste = [ (k, v) for k, v  in clas_tot_maste.items()]
         # sort
         clas_fem_depor = sorted(clas_fem_depor, key=lambda tup: tup[1],
                                 reverse=True)
         clas_mas_depor = sorted(clas_mas_depor, key=lambda tup: tup[1],
                                 reverse=True)
+        clas_tot_depor = sorted(clas_tot_depor, key=lambda tup: tup[1],
+                                reverse=True)
         clas_fem_maste = sorted(clas_fem_maste, key=lambda tup: tup[1],
                                 reverse=True)
         clas_mas_maste = sorted(clas_mas_maste, key=lambda tup: tup[1],
+                                reverse=True)
+        clas_tot_maste = sorted(clas_tot_maste, key=lambda tup: tup[1],
                                 reverse=True)
 
         # file_path = os.path.join(self.app_path_folder, 'clas_club.pdf')
@@ -566,15 +587,17 @@ class Clasaua():
             file_path=file_path,
             orientation='portrait',
             title="Circuíto Galego de Augas Abertas",
-            subtitle='Tempada 2024/25',
+            subtitle='Tempada 2025/26',
             work_path_folder=self.work_path_folder)
         d.insert_spacer(1, 12)
 
         clasifications = (
-            ('Clasificación por clubs elite feminina', clas_fem_depor),
-            ('Clasificación por clubs elite masculina', clas_mas_depor),
-            ('Clasificación por clubs máster feminina', clas_fem_maste),
-            ('Clasificación por clubs máster masculina', clas_mas_maste),
+            # ('Clasificación por clubs elite feminina', clas_fem_depor),
+            # ('Clasificación por clubs elite masculina', clas_mas_depor),
+            ('Clasificación por clubs elite total', clas_tot_depor),
+            # ('Clasificación por clubs máster feminina', clas_fem_maste),
+            # ('Clasificación por clubs máster masculina', clas_mas_maste),
+            ('Clasificación por clubs máster total', clas_tot_maste),
         )
         for clasification in clasifications:
             title = clasification[0]
