@@ -446,7 +446,8 @@ class Clasaua():
                        rowHeights=row_heghts,
                        style=style, pagebreak=False)
 
-        d.insert_spacer(1, 24)
+        # d.insert_spacer(1, 24)
+        d.insert_page_break()
         table = []
         table.append(('Relación de sedes:', ))
         total_items = NUM_EVENTS
